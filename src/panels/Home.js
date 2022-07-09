@@ -1,12 +1,27 @@
 import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 
-import {Panel, PanelHeader, Header, Button, Group, Cell, Div, Avatar} from '@vkontakte/vkui';
+import {
+    Panel,
+    PanelHeader,
+    Header,
+    Button,
+    Group,
+    Cell,
+    Div,
+    Avatar,
+    Input,
+    FormLayout,
+    FormItem
+} from '@vkontakte/vkui';
 import {useDispatch, useSelector} from "react-redux";
 import bridge from "@vkontakte/vk-bridge";
 import {initLaunchParams} from "../store/actionTypes";
+import {Dropdown} from "@vkontakte/vkui/unstable";
 
 const Home = ({id, go, fetchedUser}) => {
+    const [shown, setShown] = React.useState(false);
+
     const params = useSelector(state => state.launchParams.params)
     console.log('renderHome', params)
 
@@ -17,6 +32,11 @@ const Home = ({id, go, fetchedUser}) => {
         )
     }
 
+    const writeSign = () => {
+        setShown(false)
+        console.log('WriteSign')
+    }
+
     return (<Panel id={id}>
             <PanelHeader>{params?.vk_profile_id
                 ? `Галерея пользователя ${params.vk_profile_id}`
@@ -25,18 +45,41 @@ const Home = ({id, go, fetchedUser}) => {
 
 
             <Group mode={"plain"} header={<Header mode={"secondary"}>Собранная коллекция</Header>}>
-                {!params?.vk_profile_id && !params.vk_profile_button_forbidden &&
+                {!!params?.vk_profile_id && !params.vk_profile_button_forbidden
+                    ?
                     <Div>
                         <Button mode="primary" onClick={addToProfile}>
                             Добавить MiniApp в профиль
                         </Button>
+                    </Div>
+                    :
+                    <Div>
+                        <Dropdown
+                            shown={shown}
+                            onShownChange={setShown}
+                            content={
+                                <FormLayout>
+                                    <FormItem top="Текст авторграфа">
+                                        <Input />
+                                    </FormItem>
+                                    <FormItem>
+                                        <Button onClick={writeSign}>Подтвердить</Button>
+                                    </FormItem>
+                                </FormLayout>
+                            }
+                        >
+                            <Button mode="primary" >
+                                Оставить автограф
+                            </Button>
+                        </Dropdown>
+
                     </Div>
                 }
                 <Div>
                     {/*<Button stretched size="l" mode="secondary" onClick={go} data-to="persik">*/}
                     {/*    Show me persik*/}
                     {/*</Button>*/}
-                    {params && <p>{`${Object.keys(params)}`}</p>}
+                    {/*{params && <p>{`${Object.keys(params)}`}</p>}*/}
                 </Div>
             </Group>
             {/*{fetchedUser &&*/}
