@@ -12,7 +12,18 @@ import {
     Avatar,
     Input,
     FormLayout,
-    FormItem, PanelSpinner, Link, CardGrid, Card, ContentCard, SplitLayout, ScreenSpinner, Alert
+    FormItem,
+    PanelSpinner,
+    Link,
+    CardGrid,
+    Card,
+    ContentCard,
+    SplitLayout,
+    ScreenSpinner,
+    Alert,
+    CardScroll,
+    Text,
+    Title
 } from '@vkontakte/vkui';
 import {useDispatch, useSelector} from "react-redux";
 import bridge from "@vkontakte/vk-bridge";
@@ -50,25 +61,37 @@ const Home = ({id, go, fetchedUser}) => {
 
     const addToProfile = async () => {
         console.log("writeSign ")
-        let res = await bridge.send("VKWebAppAddToProfile", {"ttl": 0})
-        console.log('Добавлени кнопки', res)
-        params.vk_has_profile_button = 1
-        dispatch({type: initLaunchParams, payload: params})
-        console.log('Обновленные параметры', params)
+        try {
+            let res = await bridge.send("VKWebAppAddToProfile", {"ttl": 0})
+            console.log('Добавлени кнопки', res)
+            params.vk_has_profile_button = 1
+            dispatch({type: initLaunchParams, payload: params})
+            console.log('Обновленные параметры', params)
+        } catch (e) {
+            console.log(e)
+        }
+
 
     }
     const removeFromProfile = async () => {
         console.log("removeSign ")
-        let res = await bridge.send("VKWebAppRemoveFromProfile")
-        console.log('Удаление кнопки', res)
-        params.vk_has_profile_button = 0
-        dispatch({type: initLaunchParams, payload: params})
-        console.log('Обновленные параметры', params)
+        try {
+            let res = await bridge.send("VKWebAppRemoveFromProfile")
+            console.log('Удаление кнопки', res)
+            params.vk_has_profile_button = 0
+            dispatch({type: initLaunchParams, payload: params})
+            console.log('Обновленные параметры', params)
+        } catch (e){
+            console.log(e)
+        }
+
     }
     const closePopout = () => {
         setPopout(null)
     }
-
+    const showStoryBox = ({url}) => {
+        bridge.send("VKWebAppShowStoryBox", { "background_type" : "image", "url" : url });
+    }
     const writeSign = async () => {
         dispatch(setLoadingTrue())
 
@@ -147,29 +170,46 @@ const Home = ({id, go, fetchedUser}) => {
                         </Div>
                     }
                 </Group>
-                    <Group>
-                        <CardGrid size={"s"}>
-                            {user?.signs && user?.signs?.length !== 0
-                                ? user.signs.map((sign) =>
-                                    <ContentCard key={sign.id}
-
-                                                 style={{
-                                                     width: "200px",
-                                                     height: "280px",
-                                                     backgroundSize: "contain"
-                                                 }}
-                                                 header={sign.text}
-                                                 subtitle={sign.img ? 'Картианка' : 'Текст'}
-                                                 src={sign.img ? `${axios.defaults.baseURL}/${sign.img}` : persik}
-                                                 caption={<Link href={`https://vk.com/id${sign.from}`}>Автор</Link>}
-                                    >
-                                    </ContentCard>
-                                )
-                                : <p>Галерея пуста</p>
-                            }
-                            {loading && <PanelSpinner/>}
-                        </CardGrid>
-                    </Group>
+                <Group>
+                    <CardScroll size={"s"}>
+                        {user?.signs && user?.signs?.length !== 0
+                            ? user.signs.map((sign) =>
+                                <Card key={sign.id}
+                                      mode={"outline"}
+                                      style={{
+                                          height: 250,
+                                          backgroundImage: `url(${sign.img ? `${axios.defaults.baseURL}/${sign.img}` : persik})`,
+                                          backgroundSize: "cover",
+                                          display: "flex",
+                                          flexDirection: "column",
+                                          justifyContent: "end",
+                                          alignItems: "start",
+                                      }}
+                                      // header={sign.text}
+                                      // subtitle={sign.img ? 'Картинка' : 'Текст'}
+                                      // src={sign.img ? `${axios.defaults.baseURL}/${sign.img}` : persik}
+                                      // caption={<Link href={`https://vk.com/id${sign.from}`}>Автор</Link>}
+                                >
+                                    <Div style={{
+                                        padding:"16px",
+                                        display:"flex",
+                                        flexDirection:"column",
+                                        justifyContent:"end",
+                                    }}>
+                                        <Title level={"2"} style={{marginBottom: "10px"}}>{sign.text}</Title>
+                                        <Text weight="1" style={{marginBottom: "10px"}}>{sign.img ? 'Картинка' : 'Текст'}</Text>
+                                        <Link weight="3" style={{marginBottom: "10px"}} href={`https://vk.com/id${sign.from}`}>Автор</Link>
+                                        {
+                                            !params.vk_profile_id && sign.img && <Button size={"s"} onClick={() => showStoryBox({url: `${axios.defaults.baseURL}/${sign.img}` })}>В историю</Button>
+                                        }
+                                    </Div>
+                                </Card>
+                            )
+                            : <p>Галерея пуста</p>
+                        }
+                        {loading && <PanelSpinner/>}
+                    </CardScroll>
+                </Group>
 
                 {/*{fetchedUser &&*/}
                 {/*    <Group header={<Header mode="secondary">User Data Fetched with VK Bridge</Header>}>*/}

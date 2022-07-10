@@ -10,7 +10,7 @@ axios.defaults.baseURL = 'http://localhost:5000'
 export const fetchUserById = ({id, params}) => {
     return async (dispatch) => {
         const response = await axios.get(`/api/user/${id}`)
-        // console.log(response)
+        console.log('response', response)
         if (response.data) {
             dispatch({type: GET_USER_BY_ID, payload: response.data})
         } else {
@@ -23,6 +23,7 @@ export const fetchUserById = ({id, params}) => {
                 "request_id": "abababab",
                 "params": {"user_ids": id, "v": "5.131", "access_token": accessToken.access_token}
             });
+            console.log()
             const postResponse = await axios.post(`/api/user/${id}`, {"name": userInfo.response[0].first_name})
             dispatch({type: GET_USER_BY_ID, payload: postResponse.data})
         }
