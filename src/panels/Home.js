@@ -12,25 +12,33 @@ import {
     Avatar,
     Input,
     FormLayout,
-    FormItem
+    FormItem, PanelSpinner
 } from '@vkontakte/vkui';
 import {useDispatch, useSelector} from "react-redux";
 import bridge from "@vkontakte/vk-bridge";
 import {initLaunchParams} from "../store/actionTypes";
 import {Dropdown} from "@vkontakte/vkui/unstable";
+import {fetchUserById} from "../actions/users";
+import {setLoadingTrue} from "../store/reducers/launchParams";
 
+function Cells(props) {
+    return null;
+}
+
+Cells.propTypes = {children: PropTypes.node};
 const Home = ({id, go, fetchedUser}) => {
     const [shown, setShown] = React.useState(false);
     // const [params, setParams] = , )
     const dispatch = useDispatch()
-    let params = useSelector(state => state.launchParams.params)
+    const params = useSelector(state => state.launchParams.params)
+    const user = useSelector(state => state.launchParams.user)
+    const loading = useSelector(state => state.launchParams.loading)
 
     // setParams()
-    useEffect(() => {
-        console.log('params', params)
-    }, [params])
+    useEffect(async () => {
+        console.log(params, user, loading)
+    },)
 
-    // TODO: whatching params in store to dynamicly replace button add or remove
 
     const addToProfile = async () => {
         console.log("writeSign ")
@@ -53,15 +61,21 @@ const Home = ({id, go, fetchedUser}) => {
     const writeSign = () => {
         console.log('WriteSign')
         setShown(false)
+        dispatch(setLoadingTrue())
     }
 
     return (<Panel id={id}>
-            <PanelHeader>{params?.vk_profile_id
-                ? `Галерея пользователя ${params.vk_profile_id}`
+            <PanelHeader>{params?.vk_profile_id && user
+                ? `Галерея пользователя ${user.name}`
                 : `Моя галерея`}
             </PanelHeader>
-
-
+            <Div>
+                {user[0] && user[0]?.signs?.length !== 0
+                    ? user[0].signs.map((sign) => <p key={sign.id}>Текст: {sign.text}</p>)
+                    : <p>Галерея пуста</p>
+                }
+                {loading && <PanelSpinner/>}
+            </Div>
             <Group mode={"plain"} header={<Header mode={"secondary"}>Собранная коллекция</Header>}>
                 {!params.vk_profile_id
                     ? <>
@@ -79,7 +93,7 @@ const Home = ({id, go, fetchedUser}) => {
                                 </Button>
                             </Div>
                         }
-                        </>
+                    </>
                     :
                     <Div>
                         <Dropdown
@@ -112,7 +126,12 @@ const Home = ({id, go, fetchedUser}) => {
             {/*            {`${fetchedUser.first_name} ${fetchedUser.last_name}`}*/}
             {/*        </Cell>*/}
             {/*    </Group>}*/}
-
+            {/*        <Cell*/}
+            {/*            before={fetchedUser.photo_200 ? <Avatar src={fetchedUser.photo_200}/> : null}*/}
+            {/*            description={fetchedUser.city && fetchedUser.city.title ? fetchedUser.city.title : ''}*/}
+            {/*        >*/}
+            {/*            {`${fetchedUser.first_name} ${fetchedUser.last_name}`}*/}
+            {/*        </Cell>*/}
             {/*<Group header={<Header mode="secondary">Navigation Example</Header>}>*/}
 
             {/*</Group>*/}
