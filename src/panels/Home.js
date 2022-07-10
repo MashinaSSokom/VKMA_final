@@ -12,7 +12,7 @@ import {
     Avatar,
     Input,
     FormLayout,
-    FormItem, PanelSpinner, Link, CardGrid, Card, ContentCard
+    FormItem, PanelSpinner, Link, CardGrid, Card, ContentCard, SplitLayout, ScreenSpinner, Alert
 } from '@vkontakte/vkui';
 import {useDispatch, useSelector} from "react-redux";
 import bridge from "@vkontakte/vk-bridge";
@@ -40,6 +40,7 @@ const Home = ({id, go, fetchedUser}) => {
     const params = useSelector(state => state.launchParams.params)
     const user = useSelector(state => state.launchParams.user)
     const loading = useSelector(state => state.launchParams.loading)
+    const [popout, setPopout] = useState(null);
 
     // setParams()
     useEffect(async () => {
@@ -64,6 +65,9 @@ const Home = ({id, go, fetchedUser}) => {
         dispatch({type: initLaunchParams, payload: params})
         console.log('Обновленные параметры', params)
     }
+    const closePopout = () => {
+        setPopout(null)
+    }
 
     const writeSign = async () => {
         dispatch(setLoadingTrue())
@@ -80,109 +84,117 @@ const Home = ({id, go, fetchedUser}) => {
         if (res === 'OK') {
             dispatch(fetchUserById({id: params?.vk_profile_id ? params.vk_profile_id : params.user_id, params: params}))
         } else {
-            console.log('Автограф уже существует')
+            setPopout(<Alert
+                actionsLayout="horizontal"
+                onClose={closePopout}
+                header="Скример)"
+                text="Вы уже добавили свой автограф в коллекцию этого пользователя ^_^"
+            />)
         }
         setSignImg(null)
         setSignText('')
         dispatch(setLoadingFalse())
-
     }
 
-    return (<Panel id={id}>
-            <PanelHeader>{params?.vk_profile_id && user
-                ? `Галерея пользователя ${user.name}`
-                : `Моя галерея`}
-            </PanelHeader>
-            <Div>
+    return (
+        <SplitLayout popout={popout}>
+            <Panel id={id}>
+                <PanelHeader>{params?.vk_profile_id && user
+                    ? `Галерея пользователя ${user.name}`
+                    : `Моя галерея`}
+                </PanelHeader>
+                <Div>
 
-                <Group>
-                    <CardGrid size={"s"}>
-                        {user?.signs && user?.signs?.length !== 0
-                            ? user.signs.map((sign) =>
-                                <ContentCard key={sign.id}
+                    <Group>
+                        <CardGrid size={"s"}>
+                            {user?.signs && user?.signs?.length !== 0
+                                ? user.signs.map((sign) =>
+                                    <ContentCard key={sign.id}
 
-                                             style={{
-                                                 width: "200px",
-                                                 height: "280px",
-                                                 backgroundSize: "contain"
-                                             }}
-                                             header={sign.text}
-                                             subtitle={sign.img ? 'Картианка' : 'Текст'}
-                                             src={sign.img ? `${axios.defaults.baseURL}/${sign.img}` : persik}
-                                             caption={<Link href={`https://vk.com/id${sign.from}`}>Автор</Link>}
-                                >
-                                </ContentCard>
-                            )
-                            : <p>Галерея пуста</p>
-                        }
-                        {loading && <PanelSpinner/>}
-                    </CardGrid>
-                </Group>
-
-            </Div>
-            <Group mode={"plain"} header={(user?.signs && user?.signs?.length !== 0) ? <Header mode={"secondary"}>Собранная коллекция</Header>: ''}>
-                {!params.vk_profile_id
-                    ? <>
-                        {!params?.vk_profile_id && !params.vk_has_profile_button
-                            ?
-                            <Div>
-                                <Button mode="primary" onClick={addToProfile}>
-                                    Добавить MiniApp в профиль
-                                </Button>
-                            </Div>
-                            :
-                            <Div>
-                                <Button mode="primary" onClick={removeFromProfile}>
-                                    Убрать MiniApp из профиля
-                                </Button>
-                            </Div>
-                        }
-                    </>
-                    :
-                    <Div>
-                        <Dropdown
-                            shown={shown}
-                            onShownChange={setShown}
-                            content={
-                                <FormLayout>
-                                    <FormItem top="Текст авторграфа">
-                                        <Input value={signText} onChange={e => setSignText(e.target.value)}/>
-                                    </FormItem>
-                                    <FormItem>
-                                        <Input type={"file"} onChange={e => setSignImg(e.target.files[0])}/>
-                                    </FormItem>
-                                    <FormItem>
-                                        <Button onClick={writeSign}>Подтвердить</Button>
-                                    </FormItem>
-                                </FormLayout>
+                                                 style={{
+                                                     width: "200px",
+                                                     height: "280px",
+                                                     backgroundSize: "contain"
+                                                 }}
+                                                 header={sign.text}
+                                                 subtitle={sign.img ? 'Картианка' : 'Текст'}
+                                                 src={sign.img ? `${axios.defaults.baseURL}/${sign.img}` : persik}
+                                                 caption={<Link href={`https://vk.com/id${sign.from}`}>Автор</Link>}
+                                    >
+                                    </ContentCard>
+                                )
+                                : <p>Галерея пуста</p>
                             }
-                        >
-                            <Button mode="primary">
-                                Оставить автограф
-                            </Button>
-                        </Dropdown>
-                    </Div>
-                }
-            </Group>
-            {/*{fetchedUser &&*/}
-            {/*    <Group header={<Header mode="secondary">User Data Fetched with VK Bridge</Header>}>*/}
-            {/*        <Cell*/}
-            {/*            before={fetchedUser.photo_200 ? <Avatar src={fetchedUser.photo_200}/> : null}*/}
-            {/*            description={fetchedUser.city && fetchedUser.city.title ? fetchedUser.city.title : ''}*/}
-            {/*        >*/}
-            {/*            {`${fetchedUser.first_name} ${fetchedUser.last_name}`}*/}
-            {/*        </Cell>*/}
-            {/*    </Group>}*/}
-            {/*        <Cell*/}
-            {/*            before={fetchedUser.photo_200 ? <Avatar src={fetchedUser.photo_200}/> : null}*/}
-            {/*            description={fetchedUser.city && fetchedUser.city.title ? fetchedUser.city.title : ''}*/}
-            {/*        >*/}
-            {/*            {`${fetchedUser.first_name} ${fetchedUser.last_name}`}*/}
-            {/*        </Cell>*/}
-            {/*<Group header={<Header mode="secondary">Navigation Example</Header>}>*/}
+                            {loading && <PanelSpinner/>}
+                        </CardGrid>
+                    </Group>
 
-            {/*</Group>*/}
-        </Panel>
+                </Div>
+                <Group mode={"plain"} header={(user?.signs && user?.signs?.length !== 0) ?
+                    <Header mode={"secondary"}>Собранная коллекция</Header> : ''}>
+                    {!params.vk_profile_id
+                        ? <>
+                            {!params?.vk_profile_id && !params.vk_has_profile_button
+                                ?
+                                <Div>
+                                    <Button mode="primary" onClick={addToProfile}>
+                                        Добавить MiniApp в профиль
+                                    </Button>
+                                </Div>
+                                :
+                                <Div>
+                                    <Button mode="primary" onClick={removeFromProfile}>
+                                        Убрать MiniApp из профиля
+                                    </Button>
+                                </Div>
+                            }
+                        </>
+                        :
+                        <Div>
+                            <Dropdown
+                                shown={shown}
+                                onShownChange={setShown}
+                                content={
+                                    <FormLayout>
+                                        <FormItem top="Текст авторграфа">
+                                            <Input value={signText} onChange={e => setSignText(e.target.value)}/>
+                                        </FormItem>
+                                        <FormItem>
+                                            <Input type={"file"} onChange={e => setSignImg(e.target.files[0])}/>
+                                        </FormItem>
+                                        <FormItem>
+                                            <Button onClick={writeSign}>Подтвердить</Button>
+                                        </FormItem>
+                                    </FormLayout>
+                                }
+                            >
+                                <Button mode="primary">
+                                    Оставить автограф
+                                </Button>
+                            </Dropdown>
+                        </Div>
+                    }
+                </Group>
+                {/*{fetchedUser &&*/}
+                {/*    <Group header={<Header mode="secondary">User Data Fetched with VK Bridge</Header>}>*/}
+                {/*        <Cell*/}
+                {/*            before={fetchedUser.photo_200 ? <Avatar src={fetchedUser.photo_200}/> : null}*/}
+                {/*            description={fetchedUser.city && fetchedUser.city.title ? fetchedUser.city.title : ''}*/}
+                {/*        >*/}
+                {/*            {`${fetchedUser.first_name} ${fetchedUser.last_name}`}*/}
+                {/*        </Cell>*/}
+                {/*    </Group>}*/}
+                {/*        <Cell*/}
+                {/*            before={fetchedUser.photo_200 ? <Avatar src={fetchedUser.photo_200}/> : null}*/}
+                {/*            description={fetchedUser.city && fetchedUser.city.title ? fetchedUser.city.title : ''}*/}
+                {/*        >*/}
+                {/*            {`${fetchedUser.first_name} ${fetchedUser.last_name}`}*/}
+                {/*        </Cell>*/}
+                {/*<Group header={<Header mode="secondary">Navigation Example</Header>}>*/}
+
+                {/*</Group>*/}
+            </Panel>
+        </SplitLayout>
     )
 };
 
