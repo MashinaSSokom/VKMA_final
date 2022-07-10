@@ -103,35 +103,7 @@ const Home = ({id, go, fetchedUser}) => {
                     ? `Галерея пользователя ${user.name}`
                     : `Моя галерея`}
                 </PanelHeader>
-                <Div>
-
-                    <Group>
-                        <CardGrid size={"s"}>
-                            {user?.signs && user?.signs?.length !== 0
-                                ? user.signs.map((sign) =>
-                                    <ContentCard key={sign.id}
-
-                                                 style={{
-                                                     width: "200px",
-                                                     height: "280px",
-                                                     backgroundSize: "contain"
-                                                 }}
-                                                 header={sign.text}
-                                                 subtitle={sign.img ? 'Картианка' : 'Текст'}
-                                                 src={sign.img ? `${axios.defaults.baseURL}/${sign.img}` : persik}
-                                                 caption={<Link href={`https://vk.com/id${sign.from}`}>Автор</Link>}
-                                    >
-                                    </ContentCard>
-                                )
-                                : <p>Галерея пуста</p>
-                            }
-                            {loading && <PanelSpinner/>}
-                        </CardGrid>
-                    </Group>
-
-                </Div>
-                <Group mode={"plain"} header={(user?.signs && user?.signs?.length !== 0) ?
-                    <Header mode={"secondary"}>Собранная коллекция</Header> : ''}>
+                <Group mode={"plain"}>
                     {!params.vk_profile_id
                         ? <>
                             {!params?.vk_profile_id && !params.vk_has_profile_button
@@ -156,10 +128,10 @@ const Home = ({id, go, fetchedUser}) => {
                                 onShownChange={setShown}
                                 content={
                                     <FormLayout>
-                                        <FormItem top="Текст авторграфа">
+                                        <FormItem top="Текст автографа">
                                             <Input value={signText} onChange={e => setSignText(e.target.value)}/>
                                         </FormItem>
-                                        <FormItem>
+                                        <FormItem top="Изображение">
                                             <Input type={"file"} onChange={e => setSignImg(e.target.files[0])}/>
                                         </FormItem>
                                         <FormItem>
@@ -175,6 +147,30 @@ const Home = ({id, go, fetchedUser}) => {
                         </Div>
                     }
                 </Group>
+                    <Group>
+                        <CardGrid size={"s"}>
+                            {user?.signs && user?.signs?.length !== 0
+                                ? user.signs.map((sign) =>
+                                    <ContentCard key={sign.id}
+
+                                                 style={{
+                                                     width: "200px",
+                                                     height: "280px",
+                                                     backgroundSize: "contain"
+                                                 }}
+                                                 header={sign.text}
+                                                 subtitle={sign.img ? 'Картианка' : 'Текст'}
+                                                 src={sign.img ? `${axios.defaults.baseURL}/${sign.img}` : persik}
+                                                 caption={<Link href={`https://vk.com/id${sign.from}`}>Автор</Link>}
+                                    >
+                                    </ContentCard>
+                                )
+                                : <p>Галерея пуста</p>
+                            }
+                            {loading && <PanelSpinner/>}
+                        </CardGrid>
+                    </Group>
+
                 {/*{fetchedUser &&*/}
                 {/*    <Group header={<Header mode="secondary">User Data Fetched with VK Bridge</Header>}>*/}
                 {/*        <Cell*/}
