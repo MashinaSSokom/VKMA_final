@@ -12,14 +12,19 @@ import {
     Avatar,
     Input,
     FormLayout,
-    FormItem, PanelSpinner
+    FormItem, PanelSpinner, Link, CardGrid, Card, ContentCard
 } from '@vkontakte/vkui';
 import {useDispatch, useSelector} from "react-redux";
 import bridge from "@vkontakte/vk-bridge";
 import {initLaunchParams} from "../store/actionTypes";
 import {Dropdown} from "@vkontakte/vkui/unstable";
-import {fetchUserById} from "../actions/users";
-import {setLoadingTrue} from "../store/reducers/launchParams";
+import {createSignByUserId, fetchUserById} from "../actions/users";
+import {setLoadingFalse, setLoadingTrue} from "../store/reducers/launchParams";
+import axios from "axios";
+import persik from '../img/persik.png';
+
+import './Home.css';
+
 
 function Cells(props) {
     return null;
@@ -27,8 +32,10 @@ function Cells(props) {
 
 Cells.propTypes = {children: PropTypes.node};
 const Home = ({id, go, fetchedUser}) => {
+
     const [shown, setShown] = React.useState(false);
-    // const [params, setParams] = , )
+    const [signText, setSignText] = React.useState('')
+    const [signImg, setSignImg] = React.useState(null)
     const dispatch = useDispatch()
     const params = useSelector(state => state.launchParams.params)
     const user = useSelector(state => state.launchParams.user)
@@ -58,10 +65,27 @@ const Home = ({id, go, fetchedUser}) => {
         console.log('Обновленные параметры', params)
     }
 
-    const writeSign = () => {
-        console.log('WriteSign')
-        setShown(false)
+    const writeSign = async () => {
         dispatch(setLoadingTrue())
+
+        console.log('WriteSign', signText, signImg)
+        setShown(false)
+        const formData = new FormData
+        formData.append('userId', params.vk_profile_id)
+        formData.append('text', signText)
+        formData.append('from', params.user_id)
+        formData.append('img', signImg)
+
+        const res = await createSignByUserId(formData)
+        if (res === 'OK') {
+            dispatch(fetchUserById({id: params?.vk_profile_id ? params.vk_profile_id : params.user_id, params: params}))
+        } else {
+            console.log('Автограф уже существует')
+        }
+        setSignImg(null)
+        setSignText('')
+        dispatch(setLoadingFalse())
+
     }
 
     return (<Panel id={id}>
@@ -70,13 +94,33 @@ const Home = ({id, go, fetchedUser}) => {
                 : `Моя галерея`}
             </PanelHeader>
             <Div>
-                {user[0] && user[0]?.signs?.length !== 0
-                    ? user[0].signs.map((sign) => <p key={sign.id}>Текст: {sign.text}</p>)
-                    : <p>Галерея пуста</p>
-                }
-                {loading && <PanelSpinner/>}
+
+                <Group>
+                    <CardGrid size={"s"}>
+                        {user?.signs && user?.signs?.length !== 0
+                            ? user.signs.map((sign) =>
+                                <ContentCard key={sign.id}
+
+                                             style={{
+                                                 width: "200px",
+                                                 height: "280px",
+                                                 backgroundSize: "contain"
+                                             }}
+                                             header={sign.text}
+                                             subtitle={sign.img ? 'Картианка' : 'Текст'}
+                                             src={sign.img ? `${axios.defaults.baseURL}/${sign.img}` : persik}
+                                             caption={<Link href={`https://vk.com/id${sign.from}`}>Автор</Link>}
+                                >
+                                </ContentCard>
+                            )
+                            : <p>Галерея пуста</p>
+                        }
+                        {loading && <PanelSpinner/>}
+                    </CardGrid>
+                </Group>
+
             </Div>
-            <Group mode={"plain"} header={<Header mode={"secondary"}>Собранная коллекция</Header>}>
+            <Group mode={"plain"} header={(user?.signs && user?.signs?.length !== 0) ? <Header mode={"secondary"}>Собранная коллекция</Header>: ''}>
                 {!params.vk_profile_id
                     ? <>
                         {!params?.vk_profile_id && !params.vk_has_profile_button
@@ -102,7 +146,10 @@ const Home = ({id, go, fetchedUser}) => {
                             content={
                                 <FormLayout>
                                     <FormItem top="Текст авторграфа">
-                                        <Input/>
+                                        <Input value={signText} onChange={e => setSignText(e.target.value)}/>
+                                    </FormItem>
+                                    <FormItem>
+                                        <Input type={"file"} onChange={e => setSignImg(e.target.files[0])}/>
                                     </FormItem>
                                     <FormItem>
                                         <Button onClick={writeSign}>Подтвердить</Button>

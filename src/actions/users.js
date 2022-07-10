@@ -9,13 +9,11 @@ axios.defaults.baseURL = 'http://localhost:5000'
 
 export const fetchUserById = ({id, params}) => {
     return async (dispatch) => {
-        console.log(id, params)
         const response = await axios.get(`/api/user/${id}`)
         // console.log(response)
         if (response.data) {
             dispatch({type: GET_USER_BY_ID, payload: response.data})
-        }
-        else {
+        } else {
             const accessToken = await bridge.send("VKWebAppGetAuthToken", {
                 "app_id": params.app_id,
                 scope: ["wall", "pages"]
@@ -33,8 +31,20 @@ export const fetchUserById = ({id, params}) => {
 
 export const createUserById = (id, name) => {
     return async (dispatch) => {
-        const response = await axios.post(`http://localhost:5000/api/user/${id}`, {"name": name})
+        const response = await axios.post(`/api/user/${id}`, {"name": name})
         console.log('Создал пользователя', response.data)
         dispatch(getUserById(response.data))
     }
+}
+
+export const createSignByUserId = async (formData) => {
+    try {
+        const response = await axios.post('/api/sign', formData)
+        console.log('Ответ', response)
+        return "OK"
+    } catch (e) {
+        console.log('Ошибка', e)
+        return "bad_request"
+    }
+
 }
