@@ -4,7 +4,7 @@ import {GET_USER_BY_ID} from "../store/actionTypes";
 import bridge from "@vkontakte/vk-bridge";
 
 
-axios.defaults.baseURL = 'http://localhost:5000'
+axios.defaults.baseURL = 'https://final.vkmatest.ru'
 
 
 export const fetchUserById = ({id, params}) => {
